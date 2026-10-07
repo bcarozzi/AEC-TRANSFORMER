@@ -48,6 +48,7 @@
     ukPct: '6', i0Pct: '0.3', p0W: '1100', pkW: '10500',
   };
   const CONFIDENCE = {
+    designed: { icon: '✓', text: 'Designed', help: 'Your own as-designed value' },
     derived: { icon: '✓', text: 'Derived', help: 'Follows directly from the specification' },
     catalog: { icon: '✓', text: 'Catalog', help: 'Catalog item chosen by rating' },
     default: { icon: '○', text: 'Default', help: 'Standard accessory set assumed' },
@@ -56,7 +57,7 @@
   };
   const SERIES = ['var(--series-1)', 'var(--series-2)', 'var(--series-3)'];
 
-  const state = { fields: [], inputs: {}, errors: {}, design: null, tab: 'overview', onlyAttention: false };
+  const state = { fields: [], designedGroups: [], designedBox: null, inputs: {}, errors: {}, design: null, tab: 'overview', onlyAttention: false };
   let timer = null;
   let seq = 0;
 
@@ -97,10 +98,46 @@
       });
       form.append(fs);
     });
+    buildDesignedSection(form, built);
     form.addEventListener('input', schedule);
     form.addEventListener('change', () => { syncDependent(); schedule(); });
     form.addEventListener('submit', (e) => e.preventDefault());
     fillEnumOptions();
+  }
+
+  // Optional real values from the engineers' own calculations; blank means "keep the estimate".
+  function buildDesignedSection(form, built) {
+    const designed = state.fields.filter((f) => f.section === 'designed');
+    if (!designed.length) return;
+    const box = h('details', { class: 'designed' },
+      h('summary', {}, 'As-designed data (optional) ', h('span', { class: 'count', id: 'designed-count' }, '')),
+      h('p', { class: 'hint' }, 'Enter your real values to replace the placeholder estimates. A blank field keeps its estimate, shown in grey. Lengths are in mm.'));
+    state.designedGroups.forEach((g) => {
+      const fs = h('fieldset', {}, h('legend', {}, g.title));
+      const inGroup = designed.filter((f) => f.group === g.id);
+      for (let i = 0; i < inGroup.length; i += 2) {
+        const [a, b] = [inGroup[i], inGroup[i + 1]];
+        fs.append(b ? h('div', { class: 'row-2' }, built[a.key], built[b.key]) : built[a.key]);
+      }
+      box.append(fs);
+    });
+    form.append(box);
+    state.designedBox = box;
+  }
+
+  const isDesignedKey = (key) => state.fields.some((f) => f.key === key && f.section === 'designed');
+
+  // Show each blank input's estimate as its placeholder, and how many values are real.
+  function updateDesignedUi(rows) {
+    rows.forEach((r) => {
+      const el = state.inputs[r.key];
+      if (el) el.placeholder = r.source === 'estimate' ? `~${r.value}` : '';
+    });
+    const count = $('#designed-count');
+    if (count) {
+      const n = rows.filter((r) => r.source === 'designed').length;
+      count.textContent = n ? `${n} of ${rows.length} entered` : 'none entered';
+    }
   }
 
   function fillEnumOptions() {
@@ -124,6 +161,7 @@
     syncCooling();
     const dry = state.inputs.type.value === 'dry';
     $('[data-key="sealing"]').classList.toggle('hidden', dry);
+    state.fields.filter((f) => f.oilOnly).forEach((f) => $(`[data-key="${f.key}"]`).classList.toggle('hidden', dry));
     const noTap = state.inputs.tapType.value === 'none';
     ['tapStepPct', 'tapStepsEachSide'].forEach((k) => { state.inputs[k].disabled = noTap; });
   }
@@ -139,6 +177,9 @@
     });
     syncCooling(values.cooling);
     syncDependent();
+    if (state.designedBox && state.fields.some((f) => f.section === 'designed' && state.inputs[f.key].value !== '')) {
+      state.designedBox.open = true;
+    }
   }
 
   function collect() {
@@ -157,6 +198,8 @@
       $(`#err-${f.key}`).textContent = msg;
       state.inputs[f.key].setAttribute('aria-invalid', msg ? 'true' : 'false');
     });
+    // An error inside a collapsed section would be invisible.
+    if (state.designedBox && errors.some((e) => isDesignedKey(e.field))) state.designedBox.open = true;
   }
 
   function renderSpecWarnings(warnings) {
@@ -196,6 +239,7 @@
     }
     state.design = data;
     showErrors([]);
+    updateDesignedUi(data.designData);
     renderSpecWarnings(data.warnings);
     setStatus(null);
     renderResults();
@@ -242,12 +286,44 @@
         tile('Peak efficiency', `${fmt(x.efficiency.maxPf1Pct, 2)} %`, `at ${fmt(x.efficiency.maxLoadFactor * 100, 0)} % of rated load`),
         tile('Voltage regulation', `${fmt(x.regulation.ratedPf08LagPct, 2)} %`, `rated load, cos φ = 0.8 lagging · ${fmt(x.regulation.ratedPf1Pct, 2)} % at cos φ = 1`),
         tile('Total losses', `${fmt(x.totalLossesW / 1000, 2)} kW`, `no-load ${fmt0(spec.p0W)} W · load ${fmt0(spec.pkW)} W`),
-        tile('Estimated total mass', `~${fmt0(bom.estimatedTotalMassKg)} kg`, 'placeholder estimate, not a design value'),
-        tile('Estimated overall size', `${fmt0(d.model.overall.lengthMm)} × ${fmt0(d.model.overall.widthMm)} × ${fmt0(d.model.overall.heightMm)} mm`, 'L × W × H, placeholder estimate')
+        bom.totalMassSource === 'designed'
+          ? tile('Total mass', `${fmt0(bom.totalMassKg)} kg`, 'from your design data')
+          : tile('Estimated total mass', `~${fmt0(bom.totalMassKg)} kg`, 'placeholder estimate, not a design value'),
+        tile(d.model.estimate ? 'Estimated overall size' : 'Overall size', `${fmt0(d.model.overall.lengthMm)} × ${fmt0(d.model.overall.widthMm)} × ${fmt0(d.model.overall.heightMm)} mm`,
+          d.model.estimate ? 'L × W × H, includes placeholder estimates' : 'L × W × H, from design data (fittings simplified)')
       ),
+      designDataCard(d),
       equivalentCircuitCard(d),
       x.taps.length ? tapCard(d) : null
     );
+  }
+
+  function designDataCard(d) {
+    const rows = d.designData;
+    const n = rows.filter((r) => r.source === 'designed').length;
+    const body = [];
+    state.designedGroups.forEach((g) => {
+      const inGroup = rows.filter((r) => r.group === g.id);
+      if (!inGroup.length) return;
+      body.push(h('tr', { class: 'group-row' }, h('td', { colspan: 3 }, g.title)));
+      inGroup.forEach((r) => {
+        const c = CONFIDENCE[r.source === 'designed' ? 'designed' : 'estimate'];
+        body.push(h('tr', {},
+          h('td', {}, r.label),
+          h('td', { class: 'num' }, `${r.source === 'estimate' ? '~' : ''}${r.value.toLocaleString('en-US')}${r.unit ? ` ${r.unit}` : ''}`),
+          h('td', {}, h('span', { class: `badge ${r.source === 'designed' ? 'designed' : 'estimate'}`, title: c.help }, `${c.icon} ${c.text}`))));
+      });
+    });
+    return h('div', { class: 'card table-wrap' },
+      h('table', {},
+        h('caption', {}, 'Design data in use'),
+        h('thead', {}, h('tr', {}, h('th', {}, 'Item'), h('th', { class: 'num' }, 'Value'), h('th', {}, 'Source'))),
+        h('tbody', {}, body)),
+      h('p', { class: 'hint', style: 'margin-top:8px' }, n === rows.length
+        ? `All ${n} values come from your design data.`
+        : n
+          ? `${n} of ${rows.length} values come from your design data; the rest are placeholder estimates. Enter them under "As-designed data" to replace them.`
+          : 'Nothing entered yet: every value is a placeholder estimate. Enter your real values under "As-designed data" or import them from a table.'));
   }
 
   function equivalentCircuitCard(d) {
@@ -449,10 +525,10 @@
   function refreshModelText() {
     if (!model3d.ui) return;
     const m = model3d.pending;
-    model3d.ui.info.textContent = m ? `≈ ${fmt0(m.overall.lengthMm)} × ${fmt0(m.overall.widthMm)} × ${fmt0(m.overall.heightMm)} mm (L × W × H), placeholder estimate` : '';
+    model3d.ui.info.textContent = m ? `${m.estimate ? '≈ ' : ''}${fmt0(m.overall.lengthMm)} × ${fmt0(m.overall.widthMm)} × ${fmt0(m.overall.heightMm)} mm (L × W × H)${m.estimate ? ', includes placeholder estimates' : ', from design data'}` : '';
     model3d.ui.status.replaceChildren();
     put(model3d.ui.status,
-      m ? h('div', { class: 'msg warning' }, m.notice) : null,
+      m ? h('div', { class: `msg ${m.estimate ? 'warning' : 'info'}` }, m.notice) : null,
       !state.design && m ? h('div', { class: 'msg info' }, 'The specification has errors. Showing the last valid model.') : null);
   }
 
@@ -610,7 +686,9 @@
     initTabs();
     try {
       const res = await fetch('/api/fields');
-      state.fields = (await res.json()).fields;
+      const body = await res.json();
+      state.fields = body.fields;
+      state.designedGroups = body.designedGroups || [];
     } catch (err) {
       setStatus('error', 'Could not load the form from the server.');
       return;

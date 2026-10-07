@@ -39,11 +39,32 @@ authentication.
 | | Efficiency and regulation curves, with hover, keyboard and table view |
 | | Interactive 3D model (orbit, layer toggles, X-ray tank, part names on hover), exportable as `.glb` |
 | | Bill of materials on screen and as `.xlsx` |
+| Optional as-designed masses and dimensions (form or table columns) | The same outputs built from your real numbers, each value tagged **Designed** or **Estimate** |
 
 The importer reads English and Italian headers (`Potenza nominale`, `Gruppo vettoriale`,
 `Perdite a vuoto`, …), units in brackets (`Rated power [MVA]`), and decimal commas.
 Anything it could not map or had to reinterpret is reported as a note instead of
 being guessed silently. **Download template** in the UI gives the expected layout.
+
+### As-designed data
+
+The app can draw and list what your engineers have already designed. Under **As-designed data
+(optional)** in the form, or as extra columns in the import table, enter any of: masses (total, core,
+HV and LV conductor, insulation, oil volume, tank), core and winding dimensions (core diameter, window
+height, limb centre distance, LV and HV inner and outer diameters, winding heights), the tank's outer
+size, and the radiator count. Units in the header are converted (`mm`, `cm`, `m`, `kg`, `t`, `L`, `m³`),
+and Italian names are recognised (`Peso nucleo`, `Diametro nucleo`, `Lunghezza cassa`, …).
+
+- **Each value replaces the placeholder rule for that one item.** Anything left blank keeps its estimate,
+  shown in grey in the form. One real number pulls its estimated neighbours with it: enter only the core
+  diameter and the windings, window and tank follow it.
+- **The result says what is real.** BOM lines are tagged **Designed**, the 3D model says how many of its
+  12 main dimensions come from your data, and the Overview lists every value with its source.
+- **Impossible data is rejected, field by field**: windings that overlap, a core that does not fit the LV
+  winding, windings taller than the core window, an active part larger than the tank, oil-only fields on a
+  dry-type unit, radiator panels with a hermetic tank. A value far from the rough typical one (a unit
+  slip: cm for mm, t for kg) is flagged as a warning, not rejected.
+- A given radiator count implies a conservator-type unit when oil preservation is not set.
 
 ### What is real and what is a placeholder
 
@@ -52,7 +73,7 @@ efficiency, maximum-efficiency load factor, voltage regulation (IEC 60076-1
 approximation), tap table, vector-group validation (clock-number parity rules),
 terminal counts from the vector group.
 
-**Placeholder: replace before relying on it:**
+**Placeholder, used only for values you have not entered (see *As-designed data*):**
 
 - `src/bomRules.js`: mass and quantity rules (core, conductor, oil, tank, radiators).
   These are rough scaling laws, not engineering values. Every BOM line that depends
@@ -68,7 +89,7 @@ terminal counts from the vector group.
 - Oil preservation default (hermetic up to 1600 kVA, conservator above) when the
   spec does not say. It is listed under *Assumptions*.
 
-BOM line confidence: **Derived** (follows from the spec) · **Catalog** (picked by
+BOM line confidence: **Designed** (your as-designed value) · **Derived** (follows from the spec) · **Catalog** (picked by
 rating) · **Default** (assumed standard set) · **Estimate** (placeholder rule) ·
 **Unmatched** (needs a human).
 
@@ -83,6 +104,7 @@ src/
   bom.js           BOM generator, catalog selection
   bomRules.js      PLACEHOLDER sizing rules
   dimensionRules.js  PLACEHOLDER 3D dimensions
+  dimensions.js    merges as-designed values with the placeholder rules; checks they are consistent
   geometry.js      3D scene description (plain JSON, no WebGL)
   schematics.js    SVG single-line and phasor diagrams
   importers/table.js   CSV / XLSX import
@@ -107,7 +129,8 @@ tests/             Jest
 ### Roadmap
 
 1. **Foundation**: data tables → spec, BOM, diagrams, schematics. Done.
-2. **Parametric 3D model** (three.js): core, concentric windings, tank, cooling, bushings, accessories; glTF export. Done, on placeholder dimensions.
+2. **Parametric 3D model** (three.js): core, concentric windings, tank, cooling, bushings, accessories; glTF export. Done.
+   **As-designed data:** your real masses and dimensions replace the placeholders. Done.
 3. DXF / DWG ingestion (DWG via LibreDWG or the ODA converter, then `dxf-parser`).
 4. PDF and image extraction with the Claude API and a side-by-side review step.
    Note: this sends the files to the API, so confirm that is acceptable for confidential drawings.

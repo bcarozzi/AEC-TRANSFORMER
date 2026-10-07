@@ -9,12 +9,11 @@
 // PLACEHOLDERS: the model is indicative, not a manufacturing drawing.
 
 const rules = require('./dimensionRules');
-const bomRules = require('./bomRules');
+const { resolveDimensions, resolveMasses, resolveRadiators, resolveSealing } = require('./dimensions');
 
 const WHEEL_RADIUS = 60;
 const CHANNEL_HEIGHT = 40;
 const TANK_BOTTOM_Y = 160; // underside of the tank, above wheels and channels
-const FLOOR_CLEARANCE = 40; // under the bottom yoke
 const COVER_THICKNESS = 8;
 const COVER_OVERHANG = 20;
 const DRY_BASE_HEIGHT = 80;
@@ -62,27 +61,27 @@ const PHASES = ['U', 'V', 'W'];
 function buildModel(spec, derived) {
   const isOil = spec.type === 'oil';
   const vg = derived.vectorGroup;
-  const kva = spec.ratedPowerKva;
   const parts = [];
-
-  // --- active part ---
-  const d = rules.coreDiameterMm(kva);
-  const windowH = rules.windowHeightMm(d);
-  const yokeH = rules.yokeHeightMm(d);
-  const lvIn = d / 2 + rules.CORE_TO_LV_GAP_MM;
-  const lvOut = lvIn + rules.LV_RADIAL * d;
-  const hvIn = lvOut + rules.DUCT_RADIAL * d;
-  const hvOut = hvIn + rules.HV_RADIAL * d;
-  const pitch = 2 * hvOut + 0.08 * d + 20;
-  const lvH = windowH - 2 * rules.END_INSULATION_MM;
-  const hvH = lvH - 20;
-  const coreLen = 2 * pitch + d;
-  const coreH = windowH + 2 * yokeH;
-  const activeLen = 2 * pitch + 2 * hvOut;
-  const limbX = [-pitch, 0, pitch];
 
   const umHv = derived.umHvKv;
   const umLv = derived.umLvKv;
+
+  // Designed dimensions where the engineer gave them, placeholder rules elsewhere.
+  const dims = resolveDimensions(spec, umHv);
+  const v = dims.values;
+  const d = v.coreDiameterMm;
+  const windowH = v.windowHeightMm;
+  const yokeH = dims.geo.yokeHeightMm;
+  const lvIn = v.lvInnerDiameterMm / 2;
+  const lvOut = v.lvOuterDiameterMm / 2;
+  const hvIn = v.hvInnerDiameterMm / 2;
+  const hvOut = v.hvOuterDiameterMm / 2;
+  const pitch = v.phasePitchMm;
+  const lvH = v.lvHeightMm;
+  const hvH = v.hvHeightMm;
+  const coreLen = dims.geo.coreLengthMm;
+  const coreH = dims.geo.coreHeightMm;
+  const limbX = [-pitch, 0, pitch];
 
   // --- vertical layout ---
   let tankInner = null;
@@ -93,15 +92,12 @@ function buildModel(spec, derived) {
   let activeBottom;
 
   if (isOil) {
-    wallT = rules.wallThicknessMm(kva);
-    activeBottom = TANK_BOTTOM_Y + wallT + FLOOR_CLEARANCE;
-    const c = rules.clearanceMm(umHv);
-    const innerLen = activeLen + 2 * c;
-    const innerWid = 2 * hvOut + 2 * c + 60;
-    const innerH = FLOOR_CLEARANCE + coreH + rules.spaceAboveMm(umHv);
-    bodyH = innerH + wallT;
-    tankInner = { length: r1(innerLen), width: r1(innerWid), height: r1(innerH), bottomY: r1(TANK_BOTTOM_Y + wallT) };
-    tankOuter = { length: r1(innerLen + 2 * wallT), width: r1(innerWid + 2 * wallT), height: r1(bodyH) };
+    wallT = dims.geo.wallMm;
+    activeBottom = TANK_BOTTOM_Y + wallT + rules.FLOOR_CLEARANCE_MM;
+    const inner = dims.geo.inner;
+    bodyH = v.tankHeightMm;
+    tankInner = { length: r1(inner.lengthMm), width: r1(inner.widthMm), height: r1(inner.heightMm), bottomY: r1(TANK_BOTTOM_Y + wallT) };
+    tankOuter = { length: r1(v.tankLengthMm), width: r1(v.tankWidthMm), height: r1(bodyH) };
     coverTop = TANK_BOTTOM_Y + bodyH + COVER_THICKNESS;
   } else {
     activeBottom = DRY_BASE_HEIGHT;
@@ -127,7 +123,7 @@ function buildModel(spec, derived) {
     const L = tankOuter.length;
     const W = tankOuter.width;
     const bodyCentreY = TANK_BOTTOM_Y + bodyH / 2;
-    const sealing = spec.sealing ?? bomRules.defaultSealing(spec);
+    const sealing = resolveSealing(spec).value;
 
     parts.push(boxPart('tank-body', 'Tank', 'tank', 'tank', [0, bodyCentreY, 0], [L, bodyH, W], 'tank'));
     parts.push(boxPart('tank-cover', 'Tank cover', 'tank', 'tank', [0, TANK_BOTTOM_Y + bodyH + COVER_THICKNESS / 2, 0], [L + 2 * COVER_OVERHANG, COVER_THICKNESS, W + 2 * COVER_OVERHANG], 'cover'));
@@ -168,7 +164,7 @@ function buildModel(spec, derived) {
         });
       });
     } else {
-      const n = bomRules.radiatorPanels(spec);
+      const n = resolveRadiators(spec).count;
       const sides = [Math.ceil(n / 2), Math.floor(n / 2)];
       const panelH = bodyH * 0.75;
       const panelPitch = Math.max(55, Math.min(70, (L - 100) / Math.max(sides[0], 1)));
@@ -186,7 +182,7 @@ function buildModel(spec, derived) {
       });
 
       // Conservator above the bushings, fed through a Buchholz relay.
-      const oilLitres = bomRules.estimateMasses(spec).oilLitres;
+      const oilLitres = resolveMasses(spec).values.oilLitres;
       const conservatorLen = 0.7 * L;
       const conservatorR = Math.sqrt((0.1 * oilLitres * 1e6) / (Math.PI * conservatorLen));
       const conservatorY = coverTop + hvH2 + conservatorR + 60;
@@ -251,10 +247,22 @@ function buildModel(spec, derived) {
   const layers = {};
   parts.forEach((p) => { layers[p.layer] = (layers[p.layer] || 0) + 1; });
 
+  const { designed, total } = dims.completeness;
+  const estimate = designed < total;
+  let notice;
+  if (designed === 0) {
+    notice = 'Indicative model from placeholder dimension rules (src/dimensionRules.js). Enter the as-designed dimensions to replace them. Not a manufacturing drawing.';
+  } else if (estimate) {
+    notice = `${designed} of ${total} main dimensions come from your design data; the rest use placeholder rules. Fittings and clearances are simplified. Not a manufacturing drawing.`;
+  } else {
+    notice = 'Built from your design dimensions. Fittings, clearances and shapes are simplified. Not a manufacturing drawing.';
+  }
+
   return {
     units: 'mm',
-    estimate: true,
-    notice: 'Indicative model from placeholder dimension rules (src/dimensionRules.js). Not a manufacturing drawing.',
+    estimate,
+    completeness: dims.completeness,
+    notice,
     parts,
     bounds,
     overall: {
@@ -271,6 +279,7 @@ function buildModel(spec, derived) {
       tankInner,
       tankOuter,
       coverTopMm: r1(coverTop),
+      sources: dims.sources,
       layers,
     },
   };

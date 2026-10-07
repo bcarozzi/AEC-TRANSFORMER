@@ -89,8 +89,8 @@ describe('generateBom', () => {
   });
 
   test('masses grow with rating', () => {
-    const small = bomFor({ ratedPowerKva: 400 }).estimatedTotalMassKg;
-    const large = bomFor({ ratedPowerKva: 1600 }).estimatedTotalMassKg;
+    const small = bomFor({ ratedPowerKva: 400 }).totalMassKg;
+    const large = bomFor({ ratedPowerKva: 1600 }).totalMassKg;
     expect(large).toBeGreaterThan(small);
   });
 

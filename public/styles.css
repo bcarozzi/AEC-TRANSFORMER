@@ -109,7 +109,7 @@ p { margin: 0; }
 #spec-form { display: grid; gap: 14px; }
 fieldset { border: 0; padding: 0; margin: 0; display: grid; gap: 10px; min-width: 0; }
 legend { padding: 0; font-size: 12px; font-weight: 650; letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; }
-.field { display: grid; gap: 3px; }
+.field { display: grid; gap: 3px; align-content: start; }
 .field .label { font-size: 13px; color: var(--text-2); }
 .field .unit { color: var(--muted); }
 .field input, .field select {
@@ -179,7 +179,7 @@ td.basis { color: var(--text-2); font-size: 12.5px; max-width: 360px; }
 td.code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12.5px; white-space: nowrap; }
 
 .badge { display: inline-flex; align-items: center; gap: 5px; padding: 2px 8px; border-radius: 999px; font-size: 12px; font-weight: 600; white-space: nowrap; }
-.badge.derived, .badge.catalog { background: var(--ok-bg); color: var(--ok-ink); }
+.badge.designed, .badge.derived, .badge.catalog { background: var(--ok-bg); color: var(--ok-ink); }
 .badge.default { background: var(--surface-2); color: var(--text-2); }
 .badge.estimate { background: var(--warn-bg); color: var(--warn-ink); }
 .badge.unmatched { background: var(--bad-bg); color: var(--bad-ink); }
@@ -235,3 +235,16 @@ td.code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size
 .viewer-label[hidden] { display: none; }
 .checks, .views { display: flex; flex-wrap: wrap; gap: 6px 16px; align-items: center; }
 .views { gap: 4px; }
+
+/* As-designed data section */
+details.designed { border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; display: grid; gap: 10px; }
+details.designed > summary { cursor: pointer; font-size: 13px; font-weight: 650; list-style-position: inside; }
+details.designed > summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+details.designed[open] > summary { margin-bottom: 8px; }
+details.designed .count { color: var(--muted); font-weight: 400; }
+details.designed .field input::placeholder { color: var(--muted); opacity: 0.8; }
+
+/* Two-up rows: align inputs when one label wraps, and never stretch an input when a message appears. */
+.row-2 { align-items: start; }
+.row-2 .field { grid-template-rows: 3em auto auto; }
+.row-2 .field .label { align-self: end; }
