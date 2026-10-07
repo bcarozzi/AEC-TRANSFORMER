@@ -21,6 +21,12 @@ function createApp({ catalog = loadCatalog() } = {}) {
   app.disable('x-powered-by');
   app.use(express.static(path.join(__dirname, '..', 'public')));
 
+  // three.js is served from node_modules so the viewer works offline. Only the
+  // library build and its add-ons are exposed, not the whole package.
+  const threeRoot = path.dirname(path.dirname(require.resolve('three')));
+  app.use('/vendor/three/build', express.static(path.join(threeRoot, 'build')));
+  app.use('/vendor/three/addons', express.static(path.join(threeRoot, 'examples', 'jsm')));
+
   app.get('/api/fields', (req, res) => res.json({ fields: PUBLIC_FIELDS }));
 
   app.get('/api/template.csv', (req, res) => {

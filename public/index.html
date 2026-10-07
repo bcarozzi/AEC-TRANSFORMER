@@ -5,6 +5,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Transformer Designer</title>
   <link rel="stylesheet" href="styles.css">
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "/vendor/three/build/three.module.js",
+        "three/addons/": "/vendor/three/addons/"
+      }
+    }
+  </script>
 </head>
 <body>
   <header class="topbar">
@@ -39,12 +47,14 @@
       <div class="tabs" role="tablist" aria-label="Result views">
         <button role="tab" id="tab-overview" aria-controls="view-overview" aria-selected="true">Overview</button>
         <button role="tab" id="tab-schematics" aria-controls="view-schematics" aria-selected="false" tabindex="-1">Schematics</button>
+        <button role="tab" id="tab-model" aria-controls="view-model" aria-selected="false" tabindex="-1">3D model</button>
         <button role="tab" id="tab-diagrams" aria-controls="view-diagrams" aria-selected="false" tabindex="-1">Diagrams</button>
         <button role="tab" id="tab-bom" aria-controls="view-bom" aria-selected="false" tabindex="-1">Bill of materials</button>
       </div>
 
       <div id="view-overview" role="tabpanel" aria-labelledby="tab-overview"></div>
       <div id="view-schematics" role="tabpanel" aria-labelledby="tab-schematics" hidden></div>
+      <div id="view-model" role="tabpanel" aria-labelledby="tab-model" hidden></div>
       <div id="view-diagrams" role="tabpanel" aria-labelledby="tab-diagrams" hidden></div>
       <div id="view-bom" role="tabpanel" aria-labelledby="tab-bom" hidden></div>
     </section>

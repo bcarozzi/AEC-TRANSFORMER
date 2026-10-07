@@ -227,3 +227,11 @@ td.code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size
   .row-2 { grid-template-columns: 1fr; }
   .card { padding: 12px; }
 }
+
+/* 3D viewer */
+.viewer { position: relative; height: clamp(360px, 62vh, 620px); margin-top: 10px; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; background: var(--surface-2); }
+.viewer-msg { position: absolute; inset: 0; display: grid; place-items: center; color: var(--text-2); font-size: 14px; padding: 16px; text-align: center; }
+.viewer-label { position: absolute; pointer-events: none; background: var(--surface); color: var(--text); border: 1px solid var(--line); border-radius: 6px; padding: 3px 8px; font-size: 12.5px; white-space: nowrap; z-index: 2; }
+.viewer-label[hidden] { display: none; }
+.checks, .views { display: flex; flex-wrap: wrap; gap: 6px 16px; align-items: center; }
+.views { gap: 4px; }

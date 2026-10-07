@@ -19,6 +19,12 @@
     return el;
   }
 
+  // Like parent.append(), but skips null/false. The DOM would otherwise insert the text "null".
+  function put(parent, ...children) {
+    parent.append(...children.filter((c) => c !== null && c !== undefined && c !== false));
+    return parent;
+  }
+
   const fmt = (n, d = 1) => Number(n).toLocaleString('en-US', { minimumFractionDigits: d, maximumFractionDigits: d });
   const fmt0 = (n) => fmt(n, 0);
   const sig = (n, digits = 4) => Number(Number(n).toPrecision(digits)).toLocaleString('en-US', { maximumFractionDigits: 8 });
@@ -204,11 +210,13 @@
 
   // ---------- results ----------
 
-  const panels = { overview: $('#view-overview'), schematics: $('#view-schematics'), diagrams: $('#view-diagrams'), bom: $('#view-bom') };
+  const panels = { overview: $('#view-overview'), schematics: $('#view-schematics'), model: $('#view-model'), diagrams: $('#view-diagrams'), bom: $('#view-bom') };
 
   function renderResults() {
     const d = state.design;
-    Object.values(panels).forEach((p) => p.replaceChildren());
+    // The 3D panel keeps its WebGL canvas between updates, so it is never cleared here.
+    Object.entries(panels).forEach(([k, p]) => { if (k !== 'model') p.replaceChildren(); });
+    updateModel(d);
     if (!d) {
       panels.overview.append(h('div', { class: 'card' }, h('p', { class: 'hint' }, 'Complete the specification on the left to see results.')));
       return;
@@ -225,7 +233,7 @@
 
   function renderOverview(d) {
     const { derived: x, spec, bom } = d;
-    panels.overview.append(
+    put(panels.overview,
       h('div', { class: 'tiles' },
         tile('Rated current, HV', `${fmt(x.currents.hvA, 1)} A`, `at ${sig(spec.hvKv)} kV`),
         tile('Rated current, LV', `${fmt0(x.currents.lvA)} A`, `at ${sig(spec.lvKv)} kV`),
@@ -234,7 +242,8 @@
         tile('Peak efficiency', `${fmt(x.efficiency.maxPf1Pct, 2)} %`, `at ${fmt(x.efficiency.maxLoadFactor * 100, 0)} % of rated load`),
         tile('Voltage regulation', `${fmt(x.regulation.ratedPf08LagPct, 2)} %`, `rated load, cos φ = 0.8 lagging · ${fmt(x.regulation.ratedPf1Pct, 2)} % at cos φ = 1`),
         tile('Total losses', `${fmt(x.totalLossesW / 1000, 2)} kW`, `no-load ${fmt0(spec.p0W)} W · load ${fmt0(spec.pkW)} W`),
-        tile('Estimated total mass', `~${fmt0(bom.estimatedTotalMassKg)} kg`, 'placeholder estimate, not a design value')
+        tile('Estimated total mass', `~${fmt0(bom.estimatedTotalMassKg)} kg`, 'placeholder estimate, not a design value'),
+        tile('Estimated overall size', `${fmt0(d.model.overall.lengthMm)} × ${fmt0(d.model.overall.widthMm)} × ${fmt0(d.model.overall.heightMm)} mm`, 'L × W × H, placeholder estimate')
       ),
       equivalentCircuitCard(d),
       x.taps.length ? tapCard(d) : null
@@ -390,6 +399,119 @@
     }
   }
 
+  // ---------- 3D model ----------
+
+  const LAYERS = [
+    ['active', 'Active part'],
+    ['tank', 'Tank'],
+    ['cooling', 'Cooling'],
+    ['terminals', 'Bushings / terminals'],
+    ['accessories', 'Accessories'],
+  ];
+  const model3d = { viewer: null, loading: false, failed: false, pending: null, ui: null, layers: Object.fromEntries(LAYERS.map(([k]) => [k, true])), xray: true };
+
+  function buildModelPanel() {
+    const hover = h('div', { class: 'viewer-label', hidden: true });
+    const stage = h('div', { class: 'viewer', role: 'img', 'aria-label': 'Interactive 3D model of the transformer. Drag to rotate, scroll to zoom, right-drag to pan.' });
+    stage.append(hover);
+    const info = h('p', { class: 'hint' });
+    const status = h('div');
+    const layerBoxes = LAYERS.map(([key, label]) => {
+      const box = h('input', { type: 'checkbox', id: `layer-${key}`, onchange: (e) => { model3d.layers[key] = e.target.checked; model3d.viewer && model3d.viewer.setLayerVisible(key, e.target.checked); } });
+      box.checked = true;
+      return h('label', { for: `layer-${key}` }, box, label);
+    });
+    const xray = h('input', { type: 'checkbox', id: 'xray', onchange: (e) => { model3d.xray = e.target.checked; model3d.viewer && model3d.viewer.setXray(e.target.checked); } });
+    xray.checked = true;
+    const viewBtn = (label, action) => h('button', { type: 'button', class: 'btn subtle', onclick: () => model3d.viewer && action(model3d.viewer) }, label);
+    const exportBtn = h('button', { type: 'button', class: 'btn primary', onclick: exportGlb }, 'Download .glb');
+
+    panels.model.append(h('div', { class: 'card' },
+      h('div', { class: 'toolbar' }, h('div', { class: 'checks' }, layerBoxes, h('label', { for: 'xray' }, xray, 'X-ray tank')), exportBtn),
+      h('div', { class: 'toolbar', style: 'margin-top:8px' }, h('div', { class: 'views' }, viewBtn('Isometric', (v) => v.setView('iso')), viewBtn('Front (LV side)', (v) => v.setView('front')), viewBtn('Side', (v) => v.setView('side')), viewBtn('Top', (v) => v.setView('top')), viewBtn('Reset view', (v) => v.fit())), info),
+      status,
+      stage,
+      h('div', { class: 'legend', style: 'margin-top:10px' },
+        [['var(--series-1)', 'HV winding'], ['var(--series-2)', 'LV winding'], ['#59616c', 'Core'], ['#a0653f', 'Bushings'], ['#9aa7b5', 'Tank, radiators']].map(([c, t]) =>
+          h('span', { class: 'key' }, h('span', { class: 'swatch', style: `background:${c}` }, ''), t))),
+      h('p', { class: 'hint' }, 'Colours identify HV and LV windings, not the real materials. Drag to rotate, scroll to zoom, right-drag to pan. "Download .glb" exports what is visible, in metres.')));
+    model3d.ui = { stage, hover, info, status };
+    return model3d.ui;
+  }
+
+  function applyModelUi() {
+    const v = model3d.viewer;
+    LAYERS.forEach(([k]) => v.setLayerVisible(k, model3d.layers[k]));
+    v.setXray(model3d.xray);
+  }
+
+  // Text above the viewer. `state.design` is null while the specification is invalid.
+  function refreshModelText() {
+    if (!model3d.ui) return;
+    const m = model3d.pending;
+    model3d.ui.info.textContent = m ? `≈ ${fmt0(m.overall.lengthMm)} × ${fmt0(m.overall.widthMm)} × ${fmt0(m.overall.heightMm)} mm (L × W × H), placeholder estimate` : '';
+    model3d.ui.status.replaceChildren();
+    put(model3d.ui.status,
+      m ? h('div', { class: 'msg warning' }, m.notice) : null,
+      !state.design && m ? h('div', { class: 'msg info' }, 'The specification has errors. Showing the last valid model.') : null);
+  }
+
+  // Called with the new design, or null when the specification became invalid (the last model stays).
+  function updateModel(d) {
+    if (d) model3d.pending = d.model;
+    refreshModelText();
+    if (model3d.viewer && d) {
+      model3d.viewer.setModel(d.model);
+      applyModelUi();
+    }
+  }
+
+  async function ensureModelPanel() {
+    if (!model3d.ui) buildModelPanel();
+    if (model3d.viewer || model3d.loading || model3d.failed) {
+      refreshModelText();
+      return;
+    }
+    model3d.loading = true;
+    model3d.ui.stage.append(h('div', { class: 'viewer-msg', id: 'viewer-loading' }, 'Loading 3D viewer…'));
+    try {
+      const { createViewer } = await import('/model3d.js');
+      const viewer = createViewer(model3d.ui.stage, {
+        onHover: (part, x, y) => {
+          const label = model3d.ui.hover;
+          label.hidden = !part;
+          if (part) {
+            label.textContent = part.name;
+            label.style.left = `${x + 14}px`;
+            label.style.top = `${y + 14}px`;
+          }
+        },
+      });
+      if (!viewer) throw new Error('WebGL is not available');
+      model3d.viewer = viewer;
+      if (model3d.pending) { viewer.setModel(model3d.pending); applyModelUi(); }
+    } catch (err) {
+      model3d.failed = true;
+      model3d.ui.stage.replaceChildren(h('div', { class: 'viewer-msg' }, 'The 3D viewer could not start. It needs a browser with WebGL enabled.'));
+    } finally {
+      model3d.loading = false;
+      const loading = $('#viewer-loading');
+      if (loading) loading.remove();
+    }
+    refreshModelText();
+  }
+
+  async function exportGlb() {
+    if (!model3d.viewer) return;
+    try {
+      const blob = await model3d.viewer.exportGlb();
+      const base = ((state.design && state.design.spec.name) || 'transformer').replace(/[^A-Za-z0-9_-]+/g, '_');
+      downloadBlob(blob, `${base}.glb`);
+    } catch (err) {
+      setStatus('error', 'Could not export the 3D model.');
+    }
+  }
+
   // ---------- tabs ----------
 
   function selectTab(name, focus) {
@@ -401,6 +523,7 @@
       t.tabIndex = on ? 0 : -1;
       if (on && focus) t.focus();
     });
+    if (name === 'model') ensureModelPanel();
   }
 
   function initTabs() {
@@ -473,7 +596,7 @@
       const btn = h('button', { type: 'button', class: 'btn', 'aria-pressed': 'false', onclick: () => pick(s, btn) }, label);
       buttons.push(btn);
     });
-    box.append(
+    put(box,
       h('div', { class: 'msg ok' }, `Read ${data.specs.length} transformer${data.specs.length === 1 ? '' : 's'} from ${filename} (${data.layout} layout).`),
       data.ignoredColumns.length ? h('div', { class: 'msg info' }, `Not recognised, ignored: ${data.ignoredColumns.join(', ')}`) : null,
       data.specs.length > 1 ? h('div', { class: 'candidates' }, buttons) : null,
