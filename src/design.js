@@ -2,6 +2,7 @@ const { validateSpec } = require('./spec');
 const { derive } = require('./calc');
 const { generateBom } = require('./bom');
 const { singleLineSvg, phasorSvg } = require('./schematics');
+const { buildModel } = require('./geometry');
 
 // Validate a raw spec and produce everything the UI shows.
 function design(raw, options = {}) {
@@ -17,6 +18,7 @@ function design(raw, options = {}) {
     warnings: v.warnings,
     derived,
     bom,
+    model: buildModel(v.spec, derived),
     svg: {
       singleLine: singleLineSvg(v.spec, derived),
       phasor: phasorSvg(derived.vectorGroup),

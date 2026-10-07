@@ -26,6 +26,30 @@ describe('API', () => {
     expect(res.body.svg.phasor).toMatch(/^<svg/);
   });
 
+  test('POST /api/design includes the 3D scene description', async () => {
+    const res = await request(app).post('/api/design').send(typical).expect(200);
+    expect(res.body.model.units).toBe('mm');
+    expect(res.body.model.estimate).toBe(true);
+    expect(res.body.model.parts.length).toBeGreaterThan(30);
+    expect(res.body.model.overall.heightMm).toBeGreaterThan(0);
+  });
+
+  test('serves three.js and its add-ons locally, and nothing else from the package', async () => {
+    const core = await request(app).get('/vendor/three/build/three.module.js').expect(200);
+    expect(core.headers['content-type']).toMatch(/javascript/);
+    await request(app).get('/vendor/three/addons/controls/OrbitControls.js').expect(200);
+    await request(app).get('/vendor/three/addons/exporters/GLTFExporter.js').expect(200);
+    await request(app).get('/vendor/three/package.json').expect(404);
+    await request(app).get('/vendor/three/build/../package.json').expect(404);
+    await request(app).get('/vendor/three/addons/%2e%2e/%2e%2e/package.json').expect(404);
+  });
+
+  test('the page declares an import map for the local copy', async () => {
+    const res = await request(app).get('/').expect(200);
+    expect(res.text).toContain('"three": "/vendor/three/build/three.module.js"');
+    expect(res.text).toContain('"three/addons/": "/vendor/three/addons/"');
+  });
+
   test('POST /api/design returns 422 with field errors for a bad spec', async () => {
     const res = await request(app).post('/api/design').send({ ...typical, vectorGroup: 'Dyn10', p0W: -1 }).expect(422);
     expect(res.body.ok).toBe(false);
