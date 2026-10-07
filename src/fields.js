@@ -9,6 +9,17 @@
 // `unit` is the canonical unit the app works in. `unitFactors` converts the
 // unit written in an import header, e.g. "Rated power (MVA)" -> kVA.
 
+const LENGTH_MM = { mm: 1, cm: 10, m: 1000 };
+const MASS_KG = { kg: 1, t: 1000 };
+
+// Optional "as-designed" value: the engineer's real number, replacing a placeholder rule.
+function designed(key, label, unit, group, aliases, unitFactors, extra = {}) {
+  const field = { key, label, type: 'number', required: false, section: 'designed', group, aliases, ...extra };
+  if (unit) field.unit = unit;
+  if (unitFactors) field.unitFactors = unitFactors;
+  return field;
+}
+
 const FIELDS = [
   {
     key: 'name', label: 'Name / project', type: 'string', required: false,
@@ -105,6 +116,31 @@ const FIELDS = [
     key: 'hvAcKv', label: 'HV power-frequency withstand', unit: 'kV', type: 'number', required: false,
     aliases: ['hvac', 'acwithstand', 'powerfrequencywithstand', 'tensioneapplicata', 'tensioneaf'],
   },
+
+  // --- As-designed data (optional). Each value overrides the placeholder rule for
+  // that item; anything left blank keeps its estimate. See src/dimensions.js. ---
+  designed('totalMassKg', 'Total mass', 'kg', 'masses', ['totalmass', 'totalweight', 'mass', 'weight', 'massatotale', 'pesototale', 'peso', 'pesocomplessivo'], MASS_KG),
+  designed('coreMassKg', 'Core mass', 'kg', 'masses', ['coremass', 'coreweight', 'ironmass', 'massanucleo', 'pesonucleo', 'pesoferro', 'pesomagnete'], MASS_KG),
+  designed('hvConductorMassKg', 'HV winding conductor mass', 'kg', 'masses', ['hvconductormass', 'hvwindingmass', 'hvcoppermass', 'hvwindingweight', 'pesoavvolgimentoat', 'pesorameat', 'massaconduttoreat'], MASS_KG),
+  designed('lvConductorMassKg', 'LV winding conductor mass', 'kg', 'masses', ['lvconductormass', 'lvwindingmass', 'lvcoppermass', 'lvwindingweight', 'pesoavvolgimentobt', 'pesoramebt', 'massaconduttorebt'], MASS_KG),
+  designed('insulationMassKg', 'Insulation mass', 'kg', 'masses', ['insulationmass', 'insulationweight', 'massaisolamento', 'pesoisolamento', 'pesoisolanti'], MASS_KG),
+  designed('oilLitres', 'Oil volume', 'L', 'masses', ['oilvolume', 'oillitres', 'oilliters', 'oilquantity', 'volumeolio', 'quantitaolio', 'litriolio', 'olio'], { l: 1, lt: 1, litri: 1, liters: 1, litres: 1, m3: 1000 }, { oilOnly: true }),
+  designed('tankMassKg', 'Tank and cover mass', 'kg', 'masses', ['tankmass', 'tankweight', 'massacassa', 'pesocassa', 'pesocassone'], MASS_KG, { oilOnly: true }),
+
+  designed('coreDiameterMm', 'Core limb diameter', 'mm', 'core-windings', ['corediameter', 'limbdiameter', 'diametronucleo', 'diametrocolonna'], LENGTH_MM),
+  designed('windowHeightMm', 'Core window height', 'mm', 'core-windings', ['windowheight', 'coreheight', 'altezzafinestra', 'altezzacolonna'], LENGTH_MM),
+  designed('phasePitchMm', 'Limb centre distance', 'mm', 'core-windings', ['phasepitch', 'limbpitch', 'limbcentredistance', 'limbcenterdistance', 'interasse', 'interassecolonne', 'distanzaassi'], LENGTH_MM),
+  designed('lvInnerDiameterMm', 'LV winding inner diameter', 'mm', 'core-windings', ['lvinnerdiameter', 'lvinnerdia', 'lvid', 'diametrointernobt'], LENGTH_MM),
+  designed('lvOuterDiameterMm', 'LV winding outer diameter', 'mm', 'core-windings', ['lvouterdiameter', 'lvouterdia', 'lvod', 'diametroesternobt'], LENGTH_MM),
+  designed('hvInnerDiameterMm', 'HV winding inner diameter', 'mm', 'core-windings', ['hvinnerdiameter', 'hvinnerdia', 'hvid', 'diametrointernoat'], LENGTH_MM),
+  designed('hvOuterDiameterMm', 'HV winding outer diameter', 'mm', 'core-windings', ['hvouterdiameter', 'hvouterdia', 'hvod', 'diametroesternoat'], LENGTH_MM),
+  designed('lvHeightMm', 'LV winding height', 'mm', 'core-windings', ['lvheight', 'lvwindingheight', 'altezzabt', 'altezzaavvolgimentobt'], LENGTH_MM),
+  designed('hvHeightMm', 'HV winding height', 'mm', 'core-windings', ['hvheight', 'hvwindingheight', 'altezzaat', 'altezzaavvolgimentoat'], LENGTH_MM),
+
+  designed('tankLengthMm', 'Tank length (outer)', 'mm', 'tank', ['tanklength', 'lunghezzacassa', 'lunghezzacassone'], LENGTH_MM, { oilOnly: true }),
+  designed('tankWidthMm', 'Tank width (outer)', 'mm', 'tank', ['tankwidth', 'larghezzacassa', 'larghezzacassone'], LENGTH_MM, { oilOnly: true }),
+  designed('tankHeightMm', 'Tank height (outer, no cover)', 'mm', 'tank', ['tankheight', 'altezzacassa', 'altezzacassone'], LENGTH_MM, { oilOnly: true }),
+  designed('radiatorPanels', 'Radiator panels (total)', null, 'tank', ['radiatorpanels', 'radiators', 'numberofradiators', 'numeroradiatori', 'radiatori', 'elementiradianti'], undefined, { oilOnly: true, integer: true }),
 ];
 
 const FIELD_BY_KEY = Object.fromEntries(FIELDS.map((f) => [f.key, f]));
@@ -112,10 +148,16 @@ const FIELD_BY_KEY = Object.fromEntries(FIELDS.map((f) => [f.key, f]));
 // Lower case, keep letters/digits/% only.
 function normaliseHeader(text) {
   return String(text ?? '')
-    .normalize('NFD')
+    .normalize('NFKD')
     .replace(/[̀-ͯ]/g, '')
     .toLowerCase()
     .replace(/[^a-z0-9%]/g, '');
 }
 
-module.exports = { FIELDS, FIELD_BY_KEY, normaliseHeader };
+const DESIGNED_GROUPS = [
+  { id: 'masses', title: 'Masses and oil' },
+  { id: 'core-windings', title: 'Core and windings' },
+  { id: 'tank', title: 'Tank and cooling' },
+];
+
+module.exports = { FIELDS, FIELD_BY_KEY, DESIGNED_GROUPS, normaliseHeader };

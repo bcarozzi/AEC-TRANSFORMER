@@ -2,6 +2,7 @@ const ExcelJS = require('exceljs');
 const { FIELDS } = require('../fields');
 
 const CONFIDENCE_FILL = {
+  designed: 'FFD3EBDA',
   derived: 'FFE3F1E6',
   catalog: 'FFE3F1E6',
   default: 'FFF3F2EC',
@@ -10,6 +11,7 @@ const CONFIDENCE_FILL = {
 };
 
 const CONFIDENCE_HELP = {
+  designed: 'Your own as-designed value',
   derived: 'Follows directly from the specification',
   catalog: 'Catalog item chosen by rating',
   default: 'Standard accessory set assumed',

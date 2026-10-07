@@ -1,6 +1,6 @@
 const express = require('express');
 const path = require('path');
-const { FIELDS } = require('./fields');
+const { FIELDS, DESIGNED_GROUPS } = require('./fields');
 const { design } = require('./design');
 const { loadCatalog } = require('./bom');
 const { importTable } = require('./importers/table');
@@ -10,8 +10,8 @@ const { templateCsv } = require('./template');
 const XLSX_TYPE = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
 
 // Field list for the web form, without the importer-only alias tables.
-const PUBLIC_FIELDS = FIELDS.map(({ key, label, unit, type, options, required, default: def }) => ({
-  key, label, unit, type, options, required, default: def,
+const PUBLIC_FIELDS = FIELDS.map(({ key, label, unit, type, options, required, default: def, section, group, oilOnly, integer }) => ({
+  key, label, unit, type, options, required, default: def, section, group, oilOnly, integer,
 }));
 
 const safeFilename = (s) => String(s || 'transformer').replace(/[^A-Za-z0-9_-]+/g, '_').slice(0, 60) || 'transformer';
@@ -27,7 +27,7 @@ function createApp({ catalog = loadCatalog() } = {}) {
   app.use('/vendor/three/build', express.static(path.join(threeRoot, 'build')));
   app.use('/vendor/three/addons', express.static(path.join(threeRoot, 'examples', 'jsm')));
 
-  app.get('/api/fields', (req, res) => res.json({ fields: PUBLIC_FIELDS }));
+  app.get('/api/fields', (req, res) => res.json({ fields: PUBLIC_FIELDS, designedGroups: DESIGNED_GROUPS }));
 
   app.get('/api/template.csv', (req, res) => {
     res.type('text/csv').attachment('transformer-spec-template.csv').send(templateCsv());

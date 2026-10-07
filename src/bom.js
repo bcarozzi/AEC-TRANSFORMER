@@ -1,16 +1,18 @@
 const fs = require('fs');
 const path = require('path');
-const defaultRules = require('./bomRules');
+const { resolveMasses, resolveRadiators, resolveSealing } = require('./dimensions');
+const bomRules = require('./bomRules');
 
 const DEFAULT_CATALOG_PATH = path.join(__dirname, '..', 'data', 'catalog.json');
 
 // Line confidence, most to least certain:
+//   designed  - the engineer's own value from the as-designed fields
 //   derived   - follows directly from the spec (e.g. bushing count from the vector group)
 //   catalog   - catalog item picked by rating (smallest class and current that fit)
 //   default   - standard accessory set assumed; edit if your product differs
 //   estimate  - placeholder sizing rule from bomRules.js, must be replaced
 //   unmatched - nothing in the catalog fits; needs a human
-const CONFIDENCE = ['derived', 'catalog', 'default', 'estimate', 'unmatched'];
+const CONFIDENCE = ['designed', 'derived', 'catalog', 'default', 'estimate', 'unmatched'];
 
 function loadCatalog(file = DEFAULT_CATALOG_PATH) {
   const data = JSON.parse(fs.readFileSync(file, 'utf8'));
@@ -31,7 +33,7 @@ function fixedItem(catalog, key) {
   return catalog.items.find((i) => i.category === 'accessory' && i.key === key);
 }
 
-function generateBom(spec, derived, { catalog = loadCatalog(), rules = defaultRules } = {}) {
+function generateBom(spec, derived, { catalog = loadCatalog() } = {}) {
   const lines = [];
   const warnings = [];
   const assumptions = [];
@@ -69,29 +71,40 @@ function generateBom(spec, derived, { catalog = loadCatalog(), rules = defaultRu
     add(group, item, qty, unit, confidence, basis, entry);
   };
 
-  const masses = rules.estimateMasses(spec);
+  const resolved = resolveMasses(spec);
+  const masses = resolved.values;
   const { vectorGroup: vg, currents } = derived;
   const isOil = spec.type === 'oil';
 
-  // --- Active part (all placeholder estimates) ---
+  // A mass from the as-designed data, or the placeholder rule's estimate for it.
+  const addMass = (group, item, key, unit) => {
+    const designed = resolved.sources[key] === 'designed';
+    add(group, item, masses[key], unit, designed ? 'designed' : 'estimate', designed ? 'From design data' : 'Placeholder mass rule (bomRules.js)');
+  };
+
+  // --- Active part ---
   const conductor = spec.windingMaterial === 'Cu' ? 'copper' : 'aluminium';
-  add('Active part', 'Core steel (grain-oriented)', masses.coreKg, 'kg', 'estimate', 'Placeholder mass rule (bomRules.js)');
-  add('Active part', `HV winding conductor (${conductor})`, masses.hvConductorKg, 'kg', 'estimate', 'Placeholder mass rule (bomRules.js)');
-  add('Active part', `LV winding conductor (${conductor})`, masses.lvConductorKg, 'kg', 'estimate', 'Placeholder mass rule (bomRules.js)');
-  add('Active part', isOil ? 'Insulation (paper, pressboard)' : 'Insulation system (resin, laminates)', masses.insulationKg, 'kg', 'estimate', 'Placeholder mass rule (bomRules.js)');
+  addMass('Active part', 'Core steel (grain-oriented)', 'coreKg', 'kg');
+  addMass('Active part', `HV winding conductor (${conductor})`, 'hvConductorKg', 'kg');
+  addMass('Active part', `LV winding conductor (${conductor})`, 'lvConductorKg', 'kg');
+  addMass('Active part', isOil ? 'Insulation (paper, pressboard)' : 'Insulation system (resin, laminates)', 'insulationKg', 'kg');
 
   // --- Tank, oil, cooling ---
-  let sealing = spec.sealing;
+  const sealingInfo = resolveSealing(spec);
+  const sealing = sealingInfo.value;
   if (isOil) {
-    if (!sealing) {
-      sealing = rules.defaultSealing(spec);
+    if (sealingInfo.source === 'rating') {
       assumptions.push(`Oil preservation not specified: ${sealing} assumed for ${spec.ratedPowerKva} kVA`);
+    } else if (sealingInfo.source === 'radiators') {
+      assumptions.push('Oil preservation not specified: conservator assumed because a radiator count was given');
     }
-    add('Tank and cooling', 'Insulating oil', masses.oilLitres, 'L', 'estimate', 'Placeholder mass rule (bomRules.js)');
-    add('Tank and cooling', 'Tank and cover (steel)', masses.tankKg, 'kg', 'estimate', 'Placeholder mass rule (bomRules.js)');
+    addMass('Tank and cooling', 'Insulating oil', 'oilLitres', 'L');
+    addMass('Tank and cooling', 'Tank and cover (steel)', 'tankKg', 'kg');
     if (sealing === 'conservator') {
-      const panels = rules.radiatorPanels(spec);
-      addFixed('Tank and cooling', 'Radiator panel', panels, 'pcs', 'radiator-panel', `Placeholder: total losses ${derived.totalLossesW} W at ${rules.RADIATOR_W_PER_PANEL} W per panel`, 'estimate');
+      const radiators = resolveRadiators(spec);
+      addFixed('Tank and cooling', 'Radiator panel', radiators.count, 'pcs', 'radiator-panel',
+        radiators.source === 'designed' ? 'From design data' : `Placeholder: total losses ${derived.totalLossesW} W at ${bomRules.RADIATOR_W_PER_PANEL} W per panel`,
+        radiators.source === 'designed' ? 'designed' : 'estimate');
     } else {
       add('Tank and cooling', 'Corrugated fins', 'incl.', '', 'default', 'Hermetic tank: fins are part of the tank');
     }
@@ -147,15 +160,17 @@ function generateBom(spec, derived, { catalog = loadCatalog(), rules = defaultRu
   addFixed(acc, 'Rating plate', 1, 'pcs', 'rating-plate', 'Default accessory set');
 
   const estimateCount = lines.filter((l) => l.confidence === 'estimate').length;
+  const designedCount = lines.filter((l) => l.confidence === 'designed').length;
   if (estimateCount) {
-    warnings.unshift(`${estimateCount} line(s) use placeholder sizing rules (confidence "estimate"). Replace src/bomRules.js with your design rules before relying on these quantities.`);
+    warnings.unshift(`${estimateCount} line(s) still use placeholder sizing rules (confidence "estimate")${designedCount ? `; ${designedCount} come from your design data` : ''}. Enter the as-designed values, or replace src/bomRules.js, before relying on these quantities.`);
   }
 
   return {
     lines,
     warnings,
     assumptions,
-    estimatedTotalMassKg: masses.totalKg,
+    totalMassKg: masses.totalKg,
+    totalMassSource: resolved.sources.totalKg,
     catalogNotice: catalog.notice ?? null,
   };
 }

@@ -1,6 +1,7 @@
 const { z } = require('zod');
 const { FIELDS } = require('./fields');
 const { parseVectorGroup } = require('./vectorGroup');
+const { validateDesignData } = require('./dimensions');
 
 // Highest voltage for equipment Um (kV), IEC 60076-3 / IEC 60038 series.
 const UM_SERIES = [1.1, 3.6, 7.2, 12, 17.5, 24, 36, 52, 72.5, 100, 123, 145, 170, 245, 300, 362, 420, 550];
@@ -39,6 +40,9 @@ const positive = () => number().pipe(z.number().positive('must be greater than 0
 const optionalNumber = () => z.preprocess(toNumber, z.number({ invalid_type_error: 'must be a number' }).finite().optional());
 const optionalPositive = () => z.preprocess(toNumber, z.number({ invalid_type_error: 'must be a number' }).positive('must be greater than 0').optional());
 
+const optionalMass = () => z.preprocess(toNumber, z.number({ invalid_type_error: 'must be a number' }).positive('must be greater than 0').max(5_000_000, 'is unrealistically large').optional());
+const optionalLength = () => z.preprocess(toNumber, z.number({ invalid_type_error: 'must be a number' }).positive('must be greater than 0').max(100_000, 'is unrealistically large').optional());
+
 const SpecSchema = z.object({
   name: z.preprocess(toOptionalString, z.string().max(120).optional()),
   type: z.enum(['oil', 'dry']),
@@ -59,6 +63,28 @@ const SpecSchema = z.object({
   sealing: z.enum(['hermetic', 'conservator']).optional(),
   hvBilKv: optionalPositive(),
   hvAcKv: optionalPositive(),
+
+  // As-designed data (optional). Upper bounds only catch unit slips (m for mm, t for kg).
+  totalMassKg: optionalMass(),
+  coreMassKg: optionalMass(),
+  hvConductorMassKg: optionalMass(),
+  lvConductorMassKg: optionalMass(),
+  insulationMassKg: optionalMass(),
+  oilLitres: optionalMass(),
+  tankMassKg: optionalMass(),
+  coreDiameterMm: optionalLength(),
+  windowHeightMm: optionalLength(),
+  phasePitchMm: optionalLength(),
+  lvInnerDiameterMm: optionalLength(),
+  lvOuterDiameterMm: optionalLength(),
+  hvInnerDiameterMm: optionalLength(),
+  hvOuterDiameterMm: optionalLength(),
+  lvHeightMm: optionalLength(),
+  hvHeightMm: optionalLength(),
+  tankLengthMm: optionalLength(),
+  tankWidthMm: optionalLength(),
+  tankHeightMm: optionalLength(),
+  radiatorPanels: z.preprocess(toNumber, z.number({ invalid_type_error: 'must be a number' }).int('must be a whole number').positive('must be greater than 0').max(400, 'is unrealistically large').optional()),
 });
 
 function blankToUndefined(v) {
@@ -128,8 +154,15 @@ function validateSpec(raw) {
     errors.push({ field: 'tapStepsEachSide', message: 'A tap changer needs at least one step each side (choose "none" for a fixed ratio)' });
   }
 
+  let designWarnings = [];
+  if (parsed.success) {
+    const design = validateDesignData(parsed.data, nextUm(parsed.data.hvKv));
+    errors.push(...design.errors);
+    designWarnings = design.warnings;
+  }
+
   if (errors.length) return { ok: false, errors };
-  return { ok: true, spec: parsed.data, vectorGroup: vg, warnings: crossChecks(parsed.data) };
+  return { ok: true, spec: parsed.data, vectorGroup: vg, warnings: [...crossChecks(parsed.data), ...designWarnings] };
 }
 
 // Soft plausibility checks: never block, but tell the engineer.

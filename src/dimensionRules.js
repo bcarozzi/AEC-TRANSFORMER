@@ -20,6 +20,7 @@ const DUCT_RADIAL = 0.1;
 const HV_RADIAL = 0.14;
 const CORE_TO_LV_GAP_MM = 12;
 const END_INSULATION_MM = 40; // each end of the winding stack
+const FLOOR_CLEARANCE_MM = 40; // under the bottom yoke, inside the tank
 
 // Clearance from active part to tank wall and space above the core, growing with Um (kV).
 const clearanceMm = (umKv) => 50 + 3 * umKv;
@@ -40,6 +41,7 @@ module.exports = {
   HV_RADIAL,
   CORE_TO_LV_GAP_MM,
   END_INSULATION_MM,
+  FLOOR_CLEARANCE_MM,
   clearanceMm,
   spaceAboveMm,
   wallThicknessMm,
