@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Transformer Designer</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <h1>Transformer Designer</h1>
+      <p class="tagline">Power transformer specification → schematics, performance diagrams and bill of materials</p>
+    </div>
+  </header>
+
+  <main class="layout">
+    <aside class="panel spec-panel" aria-label="Specification">
+      <section class="import" aria-labelledby="import-h">
+        <h2 id="import-h">Import data table</h2>
+        <p class="hint">CSV or Excel. One row per transformer, or parameter names down the first column. English and Italian headers are recognised.</p>
+        <div class="import-actions">
+          <label class="btn" for="file-input">Choose file…</label>
+          <input id="file-input" type="file" accept=".csv,.xlsx,.tsv,.txt" hidden>
+          <a class="link" href="/api/template.csv" download>Download template</a>
+        </div>
+        <div id="import-result" aria-live="polite"></div>
+      </section>
+
+      <form id="spec-form" novalidate autocomplete="off"></form>
+
+      <section id="spec-warnings" aria-live="polite"></section>
+      <button type="button" id="reset" class="btn subtle">Reset to example</button>
+    </aside>
+
+    <section class="results" aria-label="Results">
+      <div id="status" class="status" role="status" aria-live="polite"></div>
+
+      <div class="tabs" role="tablist" aria-label="Result views">
+        <button role="tab" id="tab-overview" aria-controls="view-overview" aria-selected="true">Overview</button>
+        <button role="tab" id="tab-schematics" aria-controls="view-schematics" aria-selected="false" tabindex="-1">Schematics</button>
+        <button role="tab" id="tab-diagrams" aria-controls="view-diagrams" aria-selected="false" tabindex="-1">Diagrams</button>
+        <button role="tab" id="tab-bom" aria-controls="view-bom" aria-selected="false" tabindex="-1">Bill of materials</button>
+      </div>
+
+      <div id="view-overview" role="tabpanel" aria-labelledby="tab-overview"></div>
+      <div id="view-schematics" role="tabpanel" aria-labelledby="tab-schematics" hidden></div>
+      <div id="view-diagrams" role="tabpanel" aria-labelledby="tab-diagrams" hidden></div>
+      <div id="view-bom" role="tabpanel" aria-labelledby="tab-bom" hidden></div>
+    </section>
+  </main>
+
+  <script src="charts.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

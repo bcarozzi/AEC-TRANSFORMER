@@ -1,0 +1,611 @@
+{
+  "notice": "PLACEHOLDER CATALOG. Codes and ratings are generic examples, not real products. Replace with your component catalog.",
+  "items": [
+    {
+      "code": "BSH-12-250",
+      "category": "bushing",
+      "description": "Porcelain bushing 12 kV / 250 A",
+      "voltageClassKv": 12,
+      "ratedCurrentA": 250
+    },
+    {
+      "code": "TRM-12-250",
+      "category": "terminal",
+      "description": "Cable/bar terminal 12 kV / 250 A",
+      "voltageClassKv": 12,
+      "ratedCurrentA": 250
+    },
+    {
+      "code": "BSH-12-630",
+      "category": "bushing",
+      "description": "Porcelain bushing 12 kV / 630 A",
+      "voltageClassKv": 12,
+      "ratedCurrentA": 630
+    },
+    {
+      "code": "TRM-12-630",
+      "category": "terminal",
+      "description": "Cable/bar terminal 12 kV / 630 A",
+      "voltageClassKv": 12,
+      "ratedCurrentA": 630
+    },
+    {
+      "code": "BSH-12-1250",
+      "category": "bushing",
+      "description": "Porcelain bushing 12 kV / 1250 A",
+      "voltageClassKv": 12,
+      "ratedCurrentA": 1250
+    },
+    {
+      "code": "TRM-12-1250",
+      "category": "terminal",
+      "description": "Cable/bar terminal 12 kV / 1250 A",
+      "voltageClassKv": 12,
+      "ratedCurrentA": 1250
+    },
+    {
+      "code": "BSH-24-250",
+      "category": "bushing",
+      "description": "Porcelain bushing 24 kV / 250 A",
+      "voltageClassKv": 24,
+      "ratedCurrentA": 250
+    },
+    {
+      "code": "TRM-24-250",
+      "category": "terminal",
+      "description": "Cable/bar terminal 24 kV / 250 A",
+      "voltageClassKv": 24,
+      "ratedCurrentA": 250
+    },
+    {
+      "code": "BSH-24-630",
+      "category": "bushing",
+      "description": "Porcelain bushing 24 kV / 630 A",
+      "voltageClassKv": 24,
+      "ratedCurrentA": 630
+    },
+    {
+      "code": "TRM-24-630",
+      "category": "terminal",
+      "description": "Cable/bar terminal 24 kV / 630 A",
+      "voltageClassKv": 24,
+      "ratedCurrentA": 630
+    },
+    {
+      "code": "BSH-24-1250",
+      "category": "bushing",
+      "description": "Porcelain bushing 24 kV / 1250 A",
+      "voltageClassKv": 24,
+      "ratedCurrentA": 1250
+    },
+    {
+      "code": "TRM-24-1250",
+      "category": "terminal",
+      "description": "Cable/bar terminal 24 kV / 1250 A",
+      "voltageClassKv": 24,
+      "ratedCurrentA": 1250
+    },
+    {
+      "code": "BSH-36-250",
+      "category": "bushing",
+      "description": "Porcelain bushing 36 kV / 250 A",
+      "voltageClassKv": 36,
+      "ratedCurrentA": 250
+    },
+    {
+      "code": "TRM-36-250",
+      "category": "terminal",
+      "description": "Cable/bar terminal 36 kV / 250 A",
+      "voltageClassKv": 36,
+      "ratedCurrentA": 250
+    },
+    {
+      "code": "BSH-36-630",
+      "category": "bushing",
+      "description": "Porcelain bushing 36 kV / 630 A",
+      "voltageClassKv": 36,
+      "ratedCurrentA": 630
+    },
+    {
+      "code": "TRM-36-630",
+      "category": "terminal",
+      "description": "Cable/bar terminal 36 kV / 630 A",
+      "voltageClassKv": 36,
+      "ratedCurrentA": 630
+    },
+    {
+      "code": "BSH-36-1250",
+      "category": "bushing",
+      "description": "Porcelain bushing 36 kV / 1250 A",
+      "voltageClassKv": 36,
+      "ratedCurrentA": 1250
+    },
+    {
+      "code": "TRM-36-1250",
+      "category": "terminal",
+      "description": "Cable/bar terminal 36 kV / 1250 A",
+      "voltageClassKv": 36,
+      "ratedCurrentA": 1250
+    },
+    {
+      "code": "BSH-52-630",
+      "category": "bushing",
+      "description": "Porcelain bushing 52 kV / 630 A",
+      "voltageClassKv": 52,
+      "ratedCurrentA": 630
+    },
+    {
+      "code": "TRM-52-630",
+      "category": "terminal",
+      "description": "Cable/bar terminal 52 kV / 630 A",
+      "voltageClassKv": 52,
+      "ratedCurrentA": 630
+    },
+    {
+      "code": "BSH-52-1250",
+      "category": "bushing",
+      "description": "Porcelain bushing 52 kV / 1250 A",
+      "voltageClassKv": 52,
+      "ratedCurrentA": 1250
+    },
+    {
+      "code": "TRM-52-1250",
+      "category": "terminal",
+      "description": "Cable/bar terminal 52 kV / 1250 A",
+      "voltageClassKv": 52,
+      "ratedCurrentA": 1250
+    },
+    {
+      "code": "BSH-1.1-250",
+      "category": "bushing",
+      "description": "Porcelain bushing 1.1 kV / 250 A",
+      "voltageClassKv": 1.1,
+      "ratedCurrentA": 250
+    },
+    {
+      "code": "TRM-1.1-250",
+      "category": "terminal",
+      "description": "Cable/bar terminal 1.1 kV / 250 A",
+      "voltageClassKv": 1.1,
+      "ratedCurrentA": 250
+    },
+    {
+      "code": "BSH-1.1-630",
+      "category": "bushing",
+      "description": "Porcelain bushing 1.1 kV / 630 A",
+      "voltageClassKv": 1.1,
+      "ratedCurrentA": 630
+    },
+    {
+      "code": "TRM-1.1-630",
+      "category": "terminal",
+      "description": "Cable/bar terminal 1.1 kV / 630 A",
+      "voltageClassKv": 1.1,
+      "ratedCurrentA": 630
+    },
+    {
+      "code": "BSH-1.1-1250",
+      "category": "bushing",
+      "description": "Porcelain bushing 1.1 kV / 1250 A",
+      "voltageClassKv": 1.1,
+      "ratedCurrentA": 1250
+    },
+    {
+      "code": "TRM-1.1-1250",
+      "category": "terminal",
+      "description": "Cable/bar terminal 1.1 kV / 1250 A",
+      "voltageClassKv": 1.1,
+      "ratedCurrentA": 1250
+    },
+    {
+      "code": "BSH-1.1-2000",
+      "category": "bushing",
+      "description": "Porcelain bushing 1.1 kV / 2000 A",
+      "voltageClassKv": 1.1,
+      "ratedCurrentA": 2000
+    },
+    {
+      "code": "TRM-1.1-2000",
+      "category": "terminal",
+      "description": "Cable/bar terminal 1.1 kV / 2000 A",
+      "voltageClassKv": 1.1,
+      "ratedCurrentA": 2000
+    },
+    {
+      "code": "BSH-1.1-3150",
+      "category": "bushing",
+      "description": "Porcelain bushing 1.1 kV / 3150 A",
+      "voltageClassKv": 1.1,
+      "ratedCurrentA": 3150
+    },
+    {
+      "code": "TRM-1.1-3150",
+      "category": "terminal",
+      "description": "Cable/bar terminal 1.1 kV / 3150 A",
+      "voltageClassKv": 1.1,
+      "ratedCurrentA": 3150
+    },
+    {
+      "code": "BSH-1.1-4000",
+      "category": "bushing",
+      "description": "Porcelain bushing 1.1 kV / 4000 A",
+      "voltageClassKv": 1.1,
+      "ratedCurrentA": 4000
+    },
+    {
+      "code": "TRM-1.1-4000",
+      "category": "terminal",
+      "description": "Cable/bar terminal 1.1 kV / 4000 A",
+      "voltageClassKv": 1.1,
+      "ratedCurrentA": 4000
+    },
+    {
+      "code": "BSH-17.5-250",
+      "category": "bushing",
+      "description": "Porcelain bushing 17.5 kV / 250 A",
+      "voltageClassKv": 17.5,
+      "ratedCurrentA": 250
+    },
+    {
+      "code": "TRM-17.5-250",
+      "category": "terminal",
+      "description": "Cable/bar terminal 17.5 kV / 250 A",
+      "voltageClassKv": 17.5,
+      "ratedCurrentA": 250
+    },
+    {
+      "code": "BSH-17.5-630",
+      "category": "bushing",
+      "description": "Porcelain bushing 17.5 kV / 630 A",
+      "voltageClassKv": 17.5,
+      "ratedCurrentA": 630
+    },
+    {
+      "code": "TRM-17.5-630",
+      "category": "terminal",
+      "description": "Cable/bar terminal 17.5 kV / 630 A",
+      "voltageClassKv": 17.5,
+      "ratedCurrentA": 630
+    },
+    {
+      "code": "BSH-17.5-1250",
+      "category": "bushing",
+      "description": "Porcelain bushing 17.5 kV / 1250 A",
+      "voltageClassKv": 17.5,
+      "ratedCurrentA": 1250
+    },
+    {
+      "code": "TRM-17.5-1250",
+      "category": "terminal",
+      "description": "Cable/bar terminal 17.5 kV / 1250 A",
+      "voltageClassKv": 17.5,
+      "ratedCurrentA": 1250
+    },
+    {
+      "code": "OCTC-12-100",
+      "category": "octc",
+      "description": "Off-circuit tap switch 12 kV / 100 A",
+      "voltageClassKv": 12,
+      "ratedCurrentA": 100
+    },
+    {
+      "code": "OCTC-12-250",
+      "category": "octc",
+      "description": "Off-circuit tap switch 12 kV / 250 A",
+      "voltageClassKv": 12,
+      "ratedCurrentA": 250
+    },
+    {
+      "code": "OCTC-12-630",
+      "category": "octc",
+      "description": "Off-circuit tap switch 12 kV / 630 A",
+      "voltageClassKv": 12,
+      "ratedCurrentA": 630
+    },
+    {
+      "code": "OCTC-12-1250",
+      "category": "octc",
+      "description": "Off-circuit tap switch 12 kV / 1250 A",
+      "voltageClassKv": 12,
+      "ratedCurrentA": 1250
+    },
+    {
+      "code": "OCTC-17.5-100",
+      "category": "octc",
+      "description": "Off-circuit tap switch 17.5 kV / 100 A",
+      "voltageClassKv": 17.5,
+      "ratedCurrentA": 100
+    },
+    {
+      "code": "OCTC-17.5-250",
+      "category": "octc",
+      "description": "Off-circuit tap switch 17.5 kV / 250 A",
+      "voltageClassKv": 17.5,
+      "ratedCurrentA": 250
+    },
+    {
+      "code": "OCTC-17.5-630",
+      "category": "octc",
+      "description": "Off-circuit tap switch 17.5 kV / 630 A",
+      "voltageClassKv": 17.5,
+      "ratedCurrentA": 630
+    },
+    {
+      "code": "OCTC-17.5-1250",
+      "category": "octc",
+      "description": "Off-circuit tap switch 17.5 kV / 1250 A",
+      "voltageClassKv": 17.5,
+      "ratedCurrentA": 1250
+    },
+    {
+      "code": "OCTC-24-100",
+      "category": "octc",
+      "description": "Off-circuit tap switch 24 kV / 100 A",
+      "voltageClassKv": 24,
+      "ratedCurrentA": 100
+    },
+    {
+      "code": "OCTC-24-250",
+      "category": "octc",
+      "description": "Off-circuit tap switch 24 kV / 250 A",
+      "voltageClassKv": 24,
+      "ratedCurrentA": 250
+    },
+    {
+      "code": "OCTC-24-630",
+      "category": "octc",
+      "description": "Off-circuit tap switch 24 kV / 630 A",
+      "voltageClassKv": 24,
+      "ratedCurrentA": 630
+    },
+    {
+      "code": "OCTC-24-1250",
+      "category": "octc",
+      "description": "Off-circuit tap switch 24 kV / 1250 A",
+      "voltageClassKv": 24,
+      "ratedCurrentA": 1250
+    },
+    {
+      "code": "OCTC-36-100",
+      "category": "octc",
+      "description": "Off-circuit tap switch 36 kV / 100 A",
+      "voltageClassKv": 36,
+      "ratedCurrentA": 100
+    },
+    {
+      "code": "OCTC-36-250",
+      "category": "octc",
+      "description": "Off-circuit tap switch 36 kV / 250 A",
+      "voltageClassKv": 36,
+      "ratedCurrentA": 250
+    },
+    {
+      "code": "OCTC-36-630",
+      "category": "octc",
+      "description": "Off-circuit tap switch 36 kV / 630 A",
+      "voltageClassKv": 36,
+      "ratedCurrentA": 630
+    },
+    {
+      "code": "OCTC-36-1250",
+      "category": "octc",
+      "description": "Off-circuit tap switch 36 kV / 1250 A",
+      "voltageClassKv": 36,
+      "ratedCurrentA": 1250
+    },
+    {
+      "code": "OCTC-52-100",
+      "category": "octc",
+      "description": "Off-circuit tap switch 52 kV / 100 A",
+      "voltageClassKv": 52,
+      "ratedCurrentA": 100
+    },
+    {
+      "code": "OCTC-52-250",
+      "category": "octc",
+      "description": "Off-circuit tap switch 52 kV / 250 A",
+      "voltageClassKv": 52,
+      "ratedCurrentA": 250
+    },
+    {
+      "code": "OCTC-52-630",
+      "category": "octc",
+      "description": "Off-circuit tap switch 52 kV / 630 A",
+      "voltageClassKv": 52,
+      "ratedCurrentA": 630
+    },
+    {
+      "code": "OCTC-52-1250",
+      "category": "octc",
+      "description": "Off-circuit tap switch 52 kV / 1250 A",
+      "voltageClassKv": 52,
+      "ratedCurrentA": 1250
+    },
+    {
+      "code": "OLTC-24-100",
+      "category": "oltc",
+      "description": "On-load tap changer 24 kV / 100 A, 17 positions",
+      "voltageClassKv": 24,
+      "ratedCurrentA": 100,
+      "maxPositions": 17
+    },
+    {
+      "code": "OLTC-24-300",
+      "category": "oltc",
+      "description": "On-load tap changer 24 kV / 300 A, 17 positions",
+      "voltageClassKv": 24,
+      "ratedCurrentA": 300,
+      "maxPositions": 17
+    },
+    {
+      "code": "OLTC-24-600",
+      "category": "oltc",
+      "description": "On-load tap changer 24 kV / 600 A, 17 positions",
+      "voltageClassKv": 24,
+      "ratedCurrentA": 600,
+      "maxPositions": 17
+    },
+    {
+      "code": "OLTC-36-100",
+      "category": "oltc",
+      "description": "On-load tap changer 36 kV / 100 A, 17 positions",
+      "voltageClassKv": 36,
+      "ratedCurrentA": 100,
+      "maxPositions": 17
+    },
+    {
+      "code": "OLTC-36-300",
+      "category": "oltc",
+      "description": "On-load tap changer 36 kV / 300 A, 17 positions",
+      "voltageClassKv": 36,
+      "ratedCurrentA": 300,
+      "maxPositions": 17
+    },
+    {
+      "code": "OLTC-36-600",
+      "category": "oltc",
+      "description": "On-load tap changer 36 kV / 600 A, 17 positions",
+      "voltageClassKv": 36,
+      "ratedCurrentA": 600,
+      "maxPositions": 17
+    },
+    {
+      "code": "OLTC-52-100",
+      "category": "oltc",
+      "description": "On-load tap changer 52 kV / 100 A, 17 positions",
+      "voltageClassKv": 52,
+      "ratedCurrentA": 100,
+      "maxPositions": 17
+    },
+    {
+      "code": "OLTC-52-300",
+      "category": "oltc",
+      "description": "On-load tap changer 52 kV / 300 A, 17 positions",
+      "voltageClassKv": 52,
+      "ratedCurrentA": 300,
+      "maxPositions": 17
+    },
+    {
+      "code": "OLTC-52-600",
+      "category": "oltc",
+      "description": "On-load tap changer 52 kV / 600 A, 17 positions",
+      "voltageClassKv": 52,
+      "ratedCurrentA": 600,
+      "maxPositions": 17
+    },
+    {
+      "code": "OLTC-72.5-100",
+      "category": "oltc",
+      "description": "On-load tap changer 72.5 kV / 100 A, 17 positions",
+      "voltageClassKv": 72.5,
+      "ratedCurrentA": 100,
+      "maxPositions": 17
+    },
+    {
+      "code": "OLTC-72.5-300",
+      "category": "oltc",
+      "description": "On-load tap changer 72.5 kV / 300 A, 17 positions",
+      "voltageClassKv": 72.5,
+      "ratedCurrentA": 300,
+      "maxPositions": 17
+    },
+    {
+      "code": "OLTC-72.5-600",
+      "category": "oltc",
+      "description": "On-load tap changer 72.5 kV / 600 A, 17 positions",
+      "voltageClassKv": 72.5,
+      "ratedCurrentA": 600,
+      "maxPositions": 17
+    },
+    {
+      "code": "ACC-RATING-PLATE",
+      "category": "accessory",
+      "key": "rating-plate",
+      "description": "Rating plate, stainless steel"
+    },
+    {
+      "code": "ACC-EARTHING-TERMINAL",
+      "category": "accessory",
+      "key": "earthing-terminal",
+      "description": "Earthing terminal M12"
+    },
+    {
+      "code": "ACC-LIFTING-LUG",
+      "category": "accessory",
+      "key": "lifting-lug",
+      "description": "Lifting lug"
+    },
+    {
+      "code": "ACC-ROLLERS",
+      "category": "accessory",
+      "key": "rollers",
+      "description": "Bi-directional roller"
+    },
+    {
+      "code": "ACC-BUCHHOLZ",
+      "category": "accessory",
+      "key": "buchholz",
+      "description": "Buchholz relay"
+    },
+    {
+      "code": "ACC-CONSERVATOR",
+      "category": "accessory",
+      "key": "conservator",
+      "description": "Oil conservator with oil level gauge"
+    },
+    {
+      "code": "ACC-BREATHER",
+      "category": "accessory",
+      "key": "breather",
+      "description": "Dehydrating breather"
+    },
+    {
+      "code": "ACC-PRESSURE-RELIEF",
+      "category": "accessory",
+      "key": "pressure-relief",
+      "description": "Pressure relief device"
+    },
+    {
+      "code": "ACC-OIL-THERMOMETER",
+      "category": "accessory",
+      "key": "oil-thermometer",
+      "description": "Oil thermometer with alarm/trip contacts"
+    },
+    {
+      "code": "ACC-DRAIN-VALVE",
+      "category": "accessory",
+      "key": "drain-valve",
+      "description": "Oil drain valve"
+    },
+    {
+      "code": "ACC-FILLING-PLUG",
+      "category": "accessory",
+      "key": "filling-plug",
+      "description": "Oil filling plug"
+    },
+    {
+      "code": "ACC-RADIATOR-PANEL",
+      "category": "accessory",
+      "key": "radiator-panel",
+      "description": "Radiator panel"
+    },
+    {
+      "code": "ACC-RADIATOR-FAN",
+      "category": "accessory",
+      "key": "radiator-fan",
+      "description": "Radiator cooling fan"
+    },
+    {
+      "code": "ACC-PT100",
+      "category": "accessory",
+      "key": "pt100",
+      "description": "PT100 winding temperature sensor"
+    },
+    {
+      "code": "ACC-DRY-FAN-SET",
+      "category": "accessory",
+      "key": "dry-fan-set",
+      "description": "Cross-flow cooling fan set"
+    }
+  ]
+}
